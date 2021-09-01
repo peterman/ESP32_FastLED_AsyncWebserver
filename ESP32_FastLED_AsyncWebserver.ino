@@ -1,5 +1,5 @@
 /*
-   Modifed 2019 by Jeremy Spencer
+   Modifed 2021 by Peter Pfeiffer
    
    Ported from ESP32 FastLED WebServer: https://github.com/jasoncoon/esp32-fastled-webserver
    Copyright (C) 2017 Jason Coon
@@ -9,7 +9,10 @@
 
    ESP32 support provided by the hard work of Sam Guyer:
    https://github.com/samguyer/FastLED
-
+   
+   Async Mode by Jeremy Spencer
+   https://github.com/PureTek-Innovations/ESP32_FastLED_AsyncWebserver
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
@@ -42,6 +45,7 @@
 #include <SPIFFS.h>
 
 #include <ESPAsyncWebServer.h>
+#include <SPIFFSEditor.h>
 #include <DNSServer.h>
 #include <FS.h>
 #include <EEPROM.h>
@@ -97,7 +101,7 @@ uint8_t paletteTimer = 20;
 
 
 
-#define DATA_PIN    2
+#define DATA_PIN    0
 #define CLK_PIN   5
 
 

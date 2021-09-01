@@ -80,7 +80,9 @@ void setupWeb() {
       request->send(404);
     }
   });
-
+  
+  Serial.println ( "Starting Editorhandler" );
+  webServer.addHandler(new SPIFFSEditor(SPIFFS, editor_username, editor_password));
   Serial.println ( "Starting HTTP server" );
   webServer.begin();
   Serial.println ( "HTTP server started" );

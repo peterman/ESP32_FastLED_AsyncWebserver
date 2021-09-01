@@ -69,24 +69,6 @@ void setupWiFi() {
   //    webServer.send(200, "application/json", json);
   //  });
 
-#if defined(ESP8266)
-if(apMode){
-  uint8_t mac[WL_MAC_ADDR_LENGTH];
-  WiFi.softAPmacAddress(mac);
-  String macID = String(mac[WL_MAC_ADDR_LENGTH - 4], HEX) +
-                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-  macID.toUpperCase();
-  String softAP_ssid = "XmasTree" + macID;
-  char ssid[softAP_ssid.length()];
-  softAP_ssid.toCharArray(ssid, softAP_ssid.length() + 1);
-
-  String softAP_password = macID;
-  softAP_password += macID;
-
-  char password[softAP_password.length()];
-  softAP_password.toCharArray(password, softAP_password.length() + 1);
-}
-#elif defined(ESP32)
   uint64_t chipid = ESP.getEfuseMac();
   Serial.printf("ESP32 Chip ID = %04X", (uint16_t)(chipid >> 32)); //print High 2 bytes
   Serial.printf("%08X\n", (uint32_t)chipid); //print Low 4bytes.
@@ -101,7 +83,7 @@ if(apMode){
 
   for (uint8_t i = 0; i < hostname.length(); i++)hostnameChar[i] = hostname.charAt(i);
   for (uint8_t i = 0; i < hex.length(); i++)WiFiAPPSK[i] = hex.charAt(i);
-#endif
+
   // Set Hostname.
 
 
@@ -112,23 +94,16 @@ if(apMode){
     WiFi.disconnect();
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(apIP, apIP, netMsk);
-#if defined(ESP8266)
-    WiFi.hostname(ssid);
-#elif defined(ESP32)
+
     WiFi.setHostname(hostnameChar);
-#endif
+
     Serial.println("Starting AP Mode");
-#if defined(ESP8266)
-    WiFi.softAP(ssid, password);
-    delay(500); // Without delay I've seen the IP address blank
-    Serial.printf("Connect to Wi-Fi access point: %s\n", ssid);
-    Serial.printf("Password: %s\n", password);
-#elif defined(ESP32)
+
     WiFi.softAP(hostnameChar, WiFiAPPSK);
     delay(500); // Without delay I've seen the IP address blank
     Serial.printf("Connect to Wi-Fi access point: %s\n", hostnameChar);
     Serial.printf("Password: %s\n", WiFiAPPSK);
-#endif
+
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
     Serial.println();
@@ -138,11 +113,8 @@ if(apMode){
   } else     {
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
-#if defined(ESP8266)
-    WiFi.hostname("PureTek Controller");
-#elif defined(ESP32)
     WiFi.setHostname("PureTek Controller");
-#endif
+
     Serial.printf("Connecting to %s\n", ssid);
     //    if (String(WiFi.SSID()) != String(ssid)) {
     WiFi.begin(ssid, password);

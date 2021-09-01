@@ -34,28 +34,18 @@
 
 #include <FastLED.h>
 
-#define IncludeRotaryEncoder    false
 #define IncludeAudio            false  // only works with ESP32
-#define IncludeMPU9250          false  // configured for ESP32
 #define IncludeBeebotte         false  // does not work in AP mode, currently configured for ESP32
 
-#if defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#elif defined(ESP32)
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
-#endif
 
 #include <ESPAsyncWebServer.h>
 #include <DNSServer.h>
 #include <FS.h>
 #include <EEPROM.h>
 
-#if defined(IncludeRotaryEncoder) && (IncludeRotaryEncoder)
-#include <Rotary.h>
-#endif
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -107,16 +97,12 @@ uint8_t paletteTimer = 20;
 
 
 
-#if defined(ESP8266)
-#define DATA_PIN    D6
-#define CLK_PIN   D6
-#elif defined(ESP32)
 #define DATA_PIN    2
 #define CLK_PIN   5
-#endif
 
 
-#define LED_TYPE    WS2812
+
+#define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 #define NUM_STRIPS 1
 #define NUM_LEDS_PER_STRIP 12
@@ -136,35 +122,16 @@ CRGBArray<NUM_LEDS> leds;
 #include "wifi.h"
 #include "web.h"
 
-#if defined(IncludeRotaryEncoder) && (IncludeRotaryEncoder)
-#include "rotaryEncoder.h"
-#endif
 
 #if defined(IncludeAudio) && (IncludeAudio)
 #include "audio.h"
 #endif
 
-#if defined(IncludeMPU9250) && (IncludeMPU9250)
-#include "MPU9250.h"
-#endif
+
 
 #if defined(IncludeBeebotte) && (IncludeBeebotte)
 #include "beebotte.h"
 #endif
-
-#if defined(ESP8266)
-void listDir() {
-  Dir dir = SPIFFS.openDir("/");
-  while (dir.next()) {
-    String fileName = dir.fileName();
-    size_t fileSize = dir.fileSize();
-    Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
-  }
-  Serial.printf("\n");
-}
-
-#elif defined(ESP32)
-
 
 
 // -- Task handles for use in the notifications
@@ -242,7 +209,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
 }
 
 
-#endif
+
 
 
 
@@ -255,27 +222,19 @@ void setup() {
   Serial.begin(115200);
 
   SPIFFS.begin();
-#if defined(ESP8266)
-  listDir();
-  EEPROM.begin(512);
-#elif defined(ESP32)
+
   listDir(SPIFFS, "/", 1);
-#endif
 
   loadFieldsFromEEPROM(fields, fieldCount);
 
   setupWiFi();
-#if defined(IncludeRotaryEncoder) && (IncludeRotaryEncoder)
-  setupRotaryEncoder();
-#endif
+
 
 #if defined(IncludeAudio) && (IncludeAudio)
   setupAudio();
 #endif
 
-#if defined(IncludeMPU9250) && (IncludeMPU9250)
-  setupMPU9250();
-#endif
+
 
 #if defined(IncludeBeebotte) && (IncludeBeebotte)
   setupBeebotte();
@@ -302,14 +261,14 @@ void setup() {
 
   // set master brightness control
   FastLED.setBrightness(brightness);
-#if defined(ESP32)
+
   int core = xPortGetCoreID();
   Serial.print("Main code running on core ");
   Serial.println(core);
 
   // -- Create the FastLED show task
   xTaskCreatePinnedToCore(FastLEDshowTask, "FastLEDshowTask", 2048, NULL, 2, &FastLEDshowTaskHandle, FASTLED_SHOW_CORE);
-#endif
+
   autoPlayTimeout = millis() + (autoplayDuration * 1000);
   paletteTimeout = millis() + (paletteDuration * 1000);
 }
@@ -317,9 +276,7 @@ void setup() {
 void loop()
 {
   handleWeb();
-#if defined(IncludeRotaryEncoder) && (IncludeRotaryEncoder)
-  RotaryEncoder();
-#endif
+
 
 #if defined(IncludeBeebotte) && (IncludeBeebotte)
   loopBeebotte();
@@ -327,11 +284,9 @@ void loop()
 
   if (power == 0) {
     fill_solid(leds, NUM_LEDS, CRGB::Black);
-#if defined(ESP8266)
-    FastLED.show();
-#elif defined(ESP32)
+
     FastLEDshowESP32();
-#endif
+
     delay(4); // allows the WiFi extra time
   }
   else {
@@ -341,12 +296,7 @@ void loop()
     buildAudioPalette();
 #endif
 
-#if defined(IncludeMPU9250) && (IncludeMPU9250)
-    EVERY_N_MILLISECONDS(50) {
-      get_MPU9250_data();
-      build_compassPalette();
-    }
-#endif
+
 
     // Call the current pattern function once, updating the 'leds' array
     EVERY_N_MILLIS_I(patterntimer, patternTimer) {
@@ -355,11 +305,7 @@ void loop()
       // Call the current pattern function once, updating the 'leds' array
       patterns[currentPatternIndex].pattern();
       // send the 'leds' array out to the actual LED strip
-#if defined(ESP8266)
-      FastLED.show();
-#elif defined(ESP32)
       FastLEDshowESP32();
-#endif
     }
 
     // blend the current palette to the next

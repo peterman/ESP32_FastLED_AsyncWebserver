@@ -50,6 +50,9 @@
 #include <FS.h>
 #include <EEPROM.h>
 
+#include <AsyncElegantOTA.h>
+
+
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -280,6 +283,7 @@ void setup() {
 void loop()
 {
   handleWeb();
+  AsyncElegantOTA.loop();
 
 
 #if defined(IncludeBeebotte) && (IncludeBeebotte)

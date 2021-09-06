@@ -24,9 +24,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "palettes.h";
-#include "twinkleFOX.h"
-#include "plasma.h";
+#include "palettes.h"
+#include "twinkleFox.h"
+#include "plasma.h"
 
 #if defined(IncludeMPU9250) && (IncludeMPU9250)
 void yawPitchRoll();
